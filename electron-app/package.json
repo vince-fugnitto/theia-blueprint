@@ -30,6 +30,11 @@
       "config": {
         "startupTimeout": -1
       }
+    },
+    "generator": {
+      "config": {
+        "preloadTemplate": "./resources/preload.html"
+      }
     }
   },
   "dependencies": {
@@ -40,7 +45,7 @@
     "@theia/debug": "1.12.1",
     "@theia/editor": "1.12.1",
     "@theia/editor-preview": "1.12.1",
-    "@theia/electron": "1.12.1",    
+    "@theia/electron": "1.12.1",
     "@theia/external-terminal": "1.12.1",
     "@theia/file-search": "1.12.1",
     "@theia/filesystem": "1.12.1",
