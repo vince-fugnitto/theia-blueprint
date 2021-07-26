@@ -127,12 +127,38 @@ spec:
                     }
                 }
                 stage('Sign and Upload Windows') {
-                    agent any
-                    steps {
-                        unstash 'win'
-                        script {
-                            signInstaller('exe', 'winsign')
-                            uploadInstaller('windows')
+                    stages {
+                        stage('Sign Windows') {
+                            agent any
+                            steps {
+                                unstash 'win'
+                                script {
+                                    signInstaller('exe', 'winsign')
+                                }
+                                stash name: 'win'
+                            }
+                        }
+                        stage('Update Metadata Windows') {
+                            agent {
+                                label 'windows'
+                            }   
+                            steps {
+                                unstash 'win'
+                                script {
+                                    updateMetadata('../dist/TheiaBlueprint.exe', '../dist/latest.yml')
+                                }
+                                stash name: 'win'
+                            }
+                        }
+                        stage('Upload Windows') {
+                            agent any
+                            steps {
+                                unstash 'win'
+                                script {
+                                    uploadInstaller('windows')
+                                    linkInstaller('windows', 'TheiaBlueprint', 'exe')
+                                }
+                            }
                         }
                     }
                 }
@@ -203,6 +229,10 @@ def notarizeInstaller(String ext) {
     }
 }
 
+def updateMetadata(String executable, String yaml) {
+    sh "yarn electron update:checksum -e ${executable} -y ${yaml}"
+}
+
 def uploadInstaller(String platform) {
     if (env.BRANCH_NAME == releaseBranch) {
         def packageJSON = readJSON file: "package.json"
@@ -217,5 +247,17 @@ def uploadInstaller(String platform) {
         }
     } else {
         echo "Skipped upload for branch ${env.BRANCH_NAME}"
+    }
+}
+
+def linkInstaller(String platform, String installer, String extension) {
+    if (env.BRANCH_NAME == releaseBranch) {
+        def packageJSON = readJSON file: "package.json"
+        String version = "${packageJSON.version}"
+        sshagent(['projects-storage.eclipse.org-bot-ssh']) {
+            sh "ssh genie.theia@projects-storage.eclipse.org ln -s /home/data/httpd/download.eclipse.org/theia/latest/${platform}/${installer}.${extension} /home/data/httpd/download.eclipse.org/theia/latest/${platform}/${installer}-${version}.${extension}"
+        }
+    } else {
+        echo "Skipped copying installer for branch ${env.BRANCH_NAME}"
     }
 }
