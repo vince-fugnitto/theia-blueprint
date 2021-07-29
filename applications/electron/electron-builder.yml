@@ -19,6 +19,7 @@ files:
   - src-gen
   - lib
   - scripts
+  - "!**node_modules/**/electron/**"
 extraResources:
   - from: plugins
     to: app/plugins
