@@ -1,0 +1,15 @@
+name: Vince
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+
+  build:
+    name: Echo
+    runs-on: ubuntu-latest
+    steps:
+      - name: Echo Hello-World
+        run: echo "hello-world"
